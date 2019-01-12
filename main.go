@@ -43,35 +43,31 @@ func recOutput(out io.Writer, prefix string, path string, printFiles bool) error
 	if dirContentLen > 0 {
 		for _, entry := range dirContent[:dirContentLen-1] {
 			entryName := entry.Name()
-			nextPrefix := prefix + "├───"
 
 			if entry.IsDir() {
-				fmt.Fprintf(out, "%v%v\n", nextPrefix, entryName)
+				fmt.Fprintf(out, "%v%v\n", prefix + "├───", entryName)
 
 				nextPath := path2.Join(path, entryName)
-				nextPrefix = prefix + "│	"
-				if err := recOutput(out, nextPrefix, nextPath, printFiles); err != nil {
+				if err := recOutput(out, prefix + "│	", nextPath, printFiles); err != nil {
 					return err
 				}
 			} else {
-				fmt.Fprintf(out, "%v%v (%v)\n", nextPrefix, entryName, formatSize(entry.Size()))
+				fmt.Fprintf(out, "%v%v (%v)\n", prefix + "├───", entryName, formatSize(entry.Size()))
 			}
 		}
 
 		lastEntry := dirContent[dirContentLen-1]
 		lastEntryName := lastEntry.Name()
-		lastPrefix := prefix + "└───"
 
 		if lastEntry.IsDir() {
-			fmt.Fprintf(out, "%v%v\n", lastPrefix, lastEntryName)
+			fmt.Fprintf(out, "%v%v\n", prefix + "└───", lastEntryName)
 
 			nextPath := path2.Join(path, lastEntryName)
-			lastPrefix := prefix + "	"
-			if err := recOutput(out, lastPrefix, nextPath, printFiles); err != nil {
+			if err := recOutput(out, prefix + "	", nextPath, printFiles); err != nil {
 				return err
 			}
 		} else {
-			fmt.Fprintf(out, "%v%v (%v)\n", lastPrefix, lastEntryName, formatSize(lastEntry.Size()))
+			fmt.Fprintf(out, "%v%v (%v)\n", prefix + "└───", lastEntryName, formatSize(lastEntry.Size()))
 		}
 	}
 	return nil
