@@ -40,39 +40,41 @@ func recOutput(out io.Writer, prefix string, path string, printFiles bool) error
 		return err
 	}
 	dirContentLen := len(dirContent)
-	if dirContentLen == 0 {
-		lastPrefix := prefix + "└───"
-		fmt.Fprintf(out, "%v%v\n", lastPrefix, path2.Dir(path))
-	} else if dirContentLen > 0 {
+	if dirContentLen > 0 {
 		for _, entry := range dirContent[:dirContentLen-1] {
 			entryName := entry.Name()
+			nextPrefix := prefix + "├───"
+
 			if entry.IsDir() {
-				nextPrefix := prefix + "├───"
 				fmt.Fprintf(out, "%v%v\n", nextPrefix, entryName)
+
 				nextPath := path2.Join(path, entryName)
 				nextPrefix = prefix + "│	"
-				recOutput(out, nextPrefix, nextPath, printFiles)
-			} else if printFiles {
-				nextPrefix := prefix + "├───"
-				fmt.Fprintf(out, "%v%v\n", nextPrefix, entryName)
+				if err := recOutput(out, nextPrefix, nextPath, printFiles); err != nil {
+					return err
+				}
+			} else {
+				fmt.Fprintf(out, "%v%v (%v)\n", nextPrefix, entryName, formatSize(entry.Size()))
 			}
 		}
 
 		lastEntry := dirContent[dirContentLen-1]
 		lastEntryName := lastEntry.Name()
+		lastPrefix := prefix + "└───"
 
 		if lastEntry.IsDir() {
-			nextPrefix := prefix + "└───"
-			fmt.Fprintf(out, "%v%v\n", nextPrefix, lastEntryName)
-			nextPath := path2.Join(path, lastEntry.Name())
-			lastPrefix := prefix + "	"
-			recOutput(out, lastPrefix, nextPath, printFiles)
-		} else if printFiles {
-			lastPrefix := prefix + "└───"
 			fmt.Fprintf(out, "%v%v\n", lastPrefix, lastEntryName)
+
+			nextPath := path2.Join(path, lastEntryName)
+			lastPrefix := prefix + "	"
+			if err := recOutput(out, lastPrefix, nextPath, printFiles); err != nil {
+				return err
+			}
+		} else {
+			fmt.Fprintf(out, "%v%v (%v)\n", lastPrefix, lastEntryName, formatSize(lastEntry.Size()))
 		}
 	}
-	return err
+	return nil
 }
 
 func readDir(path string, withFiles bool) ([]os.FileInfo, error) {
@@ -96,4 +98,11 @@ func readDir(path string, withFiles bool) ([]os.FileInfo, error) {
 	}
 	sort.Slice(list, func(i, j int) bool { return list[i].Name() < list[j].Name() })
 	return list, nil
+}
+
+func formatSize(size int64) string {
+	if size == 0 {
+		return "empty"
+	}
+	return fmt.Sprintf("%vb", size)
 }
