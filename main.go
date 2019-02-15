@@ -45,14 +45,14 @@ func recOutput(out io.Writer, prefix string, path string, printFiles bool) error
 			entryName := entry.Name()
 
 			if entry.IsDir() {
-				fmt.Fprintf(out, "%v%v\n", prefix + "├───", entryName)
+				fmt.Fprintf(out, "%v%v\n", prefix+"├───", entryName)
 
 				nextPath := path2.Join(path, entryName)
-				if err := recOutput(out, prefix + "│	", nextPath, printFiles); err != nil {
+				if err := recOutput(out, prefix+"│	", nextPath, printFiles); err != nil {
 					return err
 				}
 			} else {
-				fmt.Fprintf(out, "%v%v (%v)\n", prefix + "├───", entryName, formatSize(entry.Size()))
+				fmt.Fprintf(out, "%v%v (%v)\n", prefix+"├───", entryName, formatSize(entry.Size()))
 			}
 		}
 
@@ -60,14 +60,14 @@ func recOutput(out io.Writer, prefix string, path string, printFiles bool) error
 		lastEntryName := lastEntry.Name()
 
 		if lastEntry.IsDir() {
-			fmt.Fprintf(out, "%v%v\n", prefix + "└───", lastEntryName)
+			fmt.Fprintf(out, "%v%v\n", prefix+"└───", lastEntryName)
 
 			nextPath := path2.Join(path, lastEntryName)
-			if err := recOutput(out, prefix + "	", nextPath, printFiles); err != nil {
+			if err := recOutput(out, prefix+"	", nextPath, printFiles); err != nil {
 				return err
 			}
 		} else {
-			fmt.Fprintf(out, "%v%v (%v)\n", prefix + "└───", lastEntryName, formatSize(lastEntry.Size()))
+			fmt.Fprintf(out, "%v%v (%v)\n", prefix+"└───", lastEntryName, formatSize(lastEntry.Size()))
 		}
 	}
 	return nil
@@ -75,11 +75,11 @@ func recOutput(out io.Writer, prefix string, path string, printFiles bool) error
 
 func readDir(path string, withFiles bool) ([]os.FileInfo, error) {
 	f, err := os.Open(path)
+	defer f.Close()
 	if err != nil {
 		return nil, err
 	}
 	list, err := f.Readdir(-1)
-	f.Close()
 	if err != nil {
 		return nil, err
 	}
